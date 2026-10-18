@@ -109,6 +109,7 @@ def main() -> None:
     ckpt = os.path.join(args.out, "ckpt.pt")
     if args.resume and os.path.exists(ckpt):
         start = load_checkpoint(ckpt, model, opt)  # noqa: F821
+        np.random.seed(cfg.seed + start)        # fresh batches after resume instead of replaying the first ones
         print(f"resumed at step {start}")
 
     log = open(os.path.join(args.out, "log.jsonl"), "a")
@@ -140,7 +141,7 @@ def main() -> None:
             rec = {"step": step, "val_loss": evaluate(model, val, cfg, device)}
             print(json.dumps(rec)); log.write(json.dumps(rec) + "\n"); log.flush()
         if step % cfg.ckpt_every == 0 and step > start:
-            save_checkpoint(model, opt, step, ckpt)  # noqa: F821
+            save_checkpoint(model, opt, step + 1, ckpt)  # noqa: F821  (step + 1 = number of updates done)
 
     save_checkpoint(model, opt, cfg.steps, ckpt)  # noqa: F821
     if device == "cuda":
