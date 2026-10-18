@@ -25,6 +25,7 @@ import numpy as np
 import torch
 from torch import Tensor
 
+from lm.tokenizer import train_bpe, Tokenizer
 
 # --------------------------------------------------------------------------- Part 1: tokenizer
 
@@ -39,7 +40,7 @@ def run_train_bpe(
     bytes first, then the special tokens, then the merged tokens in the order they
     were created; merges lists the merged pairs in creation order.
     """
-    raise NotImplementedError
+    return train_bpe(input_path, vocab_size, special_tokens)
 
 
 def get_tokenizer(
@@ -49,7 +50,7 @@ def get_tokenizer(
 ) -> Any:
     """Return an object with `encode(text) -> list[int]`, `decode(ids) -> str` and
     `encode_iterable(iterable_of_str) -> Iterator[int]`."""
-    raise NotImplementedError
+    return Tokenizer(vocab, merges, special_tokens)
 
 
 # --------------------------------------------------------------------------- Part 2: modules
