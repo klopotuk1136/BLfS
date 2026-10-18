@@ -141,6 +141,18 @@ class Tokenizer():
         self.special = {special_token: self.token_to_id[special_token.encode("utf-8")]  for special_token in special_tokens}
 
         self.cache = dict()
+        self.ranks = {pair: i for i, pair in enumerate(merges)}
+
+    def _bpe(self, word: bytes) -> list[bytes]:
+        """Repeatedly merge the adjacent pair with the lowest merge rank (same result as
+        applying all merges in order, but only touches pairs that occur in the word)."""
+        toks = [bytes([b]) for b in word]
+        while len(toks) > 1:
+            best = min(zip(toks, toks[1:]), key=lambda p: self.ranks.get(p, float("inf")))
+            if best not in self.ranks:
+                break
+            toks = merge(toks, best)
+        return toks
 
 
     def encode(self, text):
@@ -152,9 +164,7 @@ class Tokenizer():
                 if pre in self.cache:
                     ids.extend(self.cache[pre])
                     continue
-                toks = [bytes([b]) for b in pre.encode()]
-                for pair in self.merges: # by rank
-                    toks = merge(toks, pair)
+                toks = self._bpe(pre.encode())
                 pre_ids = [self.token_to_id[t] for t in toks]
                 self.cache[pre] = pre_ids
                 ids.extend(pre_ids)

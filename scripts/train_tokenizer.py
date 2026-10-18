@@ -13,7 +13,12 @@ import psutil
 from lm.tokenizer import Tokenizer, train_and_save_bpe
 
 def peak_memory_gb() -> float:
-    memory = psutil.Process().memory_info().peak_wset
+    info = psutil.Process().memory_info()
+    if hasattr(info, "peak_wset"):                 # Windows
+        memory = info.peak_wset
+    else:                                           # Linux / Colab: ru_maxrss is in KiB
+        import resource
+        memory = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * 1024
     memory_gb = memory / 1e+9
     return memory_gb
 

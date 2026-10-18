@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Tokenise a text file into a uint16 memmap with your tokenizer.
 
-    python scripts/prepare_data.py --vocab tok/vocab.json --merges tok/merges.txt \
+    python scripts/prepare_data.py --vocab saves/vocab.pkl --merges saves/merges.pkl \
         --input data/tinystories_train.txt --output data/train.bin
 
 Writes ids as little-endian uint16 (vocab_size <= 65535). Streams the input, so it works
@@ -15,8 +15,7 @@ import time
 
 import numpy as np
 
-# TODO: import your tokenizer, e.g.
-# from lm.tokenizer import Tokenizer
+from lm.tokenizer import Tokenizer
 
 
 def main() -> None:
@@ -28,8 +27,7 @@ def main() -> None:
     ap.add_argument("--special", nargs="*", default=["<|endoftext|>"])
     args = ap.parse_args()
 
-    # tok = Tokenizer.from_files(args.vocab, args.merges, args.special)
-    raise NotImplementedError("construct your tokenizer above, then delete this line")
+    tok = Tokenizer.from_files(args.vocab, args.merges, args.special)
 
     t0, n = time.time(), 0
     with open(args.input, encoding="utf-8") as f, open(args.output, "wb") as out:
