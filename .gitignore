@@ -12,3 +12,4 @@ report/*.aux
 report/*.log
 .ipynb_checkpoints/
 *.pkl
+lectures

@@ -103,14 +103,6 @@ def train_bpe(input_path, vocab_size, special_tokens) -> tuple[dict[int, bytes],
             print(f"{i} merges passed")
     return vocab, merges
 
-def split_on_special_tokens(text, special_tokens):
-    if special_tokens is None or len(special_tokens) == 0:
-        splits = [text]
-    else:
-        special_regex = "(" + "|".join([re.escape(special) for special in sorted(special_tokens, key=len, reverse=True)]) + ")"
-        splits = re.split(special_regex, text)
-    return splits
-
 
 def save_bpe(vocab, merges, dir_path: str = "/saves"):
     os.makedirs(dir_path, exist_ok=True)
@@ -128,6 +120,13 @@ def train_and_save_bpe(input_path, vocab_size, special_tokens, dir_path):
     save_bpe(vocab, merges, dir_path)
     return vocab, merges
 
+def split_on_special_tokens(text, special_tokens):
+    if special_tokens is None or len(special_tokens) == 0:
+        splits = [text]
+    else:
+        special_regex = "(" + "|".join([re.escape(special) for special in sorted(special_tokens, key=len, reverse=True)]) + ")"
+        splits = re.split(special_regex, text)
+    return splits
 
 class Tokenizer():
 
@@ -178,9 +177,6 @@ class Tokenizer():
 
         return cls(vocab, merges, special_tokens)
          
-
-
-
 
 
 if __name__ == '__main__':
