@@ -2,7 +2,7 @@ import time
 from tokenizer import count_pretokens, SPECIAL_TOKENS
 
 with open("data/tinystories_train.txt", encoding="utf-8") as f:
-    sample = f.read(20_000_000)          # first ~20 MB
+    sample = f.read(20_000_000)
 with open("data/ts_20mb.txt", "w", encoding="utf-8") as f:
     f.write(sample)
 

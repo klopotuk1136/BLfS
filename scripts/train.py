@@ -92,13 +92,12 @@ def main() -> None:
 
     torch.manual_seed(cfg.seed); np.random.seed(cfg.seed)
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    # native bf16 needs Ampere+ (L4/A100/H100); is_bf16_supported() alone also says True for emulated bf16 on a T4
-    amp_dtype = torch.bfloat16 if (device == "cuda" and torch.cuda.get_device_capability()[0] >= 8) else torch.float16
+    amp_dtype = torch.bfloat16 if (device == "cuda" and torch.cuda.is_bf16_supported()) else torch.float16
     scaler = torch.cuda.amp.GradScaler(enabled=(device == "cuda" and amp_dtype == torch.float16))
 
     train = np.memmap(args.data, dtype=np.uint16, mode="r")
     val = np.memmap(args.val, dtype=np.uint16, mode="r")
-
+    
     model = TransformerLM(cfg.vocab_size, cfg.context_length, cfg.d_model, cfg.num_layers, cfg.num_heads, cfg.d_ff, cfg.rope_theta).to(device)
     opt = AdamW(model.parameters(), lr=cfg.lr_max, betas=(cfg.beta1, cfg.beta2), weight_decay=cfg.weight_decay)
 
@@ -110,7 +109,6 @@ def main() -> None:
     ckpt = os.path.join(args.out, "ckpt.pt")
     if args.resume and os.path.exists(ckpt):
         start = load_checkpoint(ckpt, model, opt)  # noqa: F821
-        np.random.seed(cfg.seed + start)        # fresh batches after resume instead of replaying the first ones
         print(f"resumed at step {start}")
 
     log = open(os.path.join(args.out, "log.jsonl"), "a")
@@ -142,7 +140,7 @@ def main() -> None:
             rec = {"step": step, "val_loss": evaluate(model, val, cfg, device)}
             print(json.dumps(rec)); log.write(json.dumps(rec) + "\n"); log.flush()
         if step % cfg.ckpt_every == 0 and step > start:
-            save_checkpoint(model, opt, step + 1, ckpt)  # noqa: F821  (step + 1 = number of updates done)
+            save_checkpoint(model, opt, step, ckpt)  # noqa: F821
 
     save_checkpoint(model, opt, cfg.steps, ckpt)  # noqa: F821
     if device == "cuda":
