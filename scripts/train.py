@@ -92,7 +92,8 @@ def main() -> None:
 
     torch.manual_seed(cfg.seed); np.random.seed(cfg.seed)
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    amp_dtype = torch.bfloat16 if (device == "cuda" and torch.cuda.is_bf16_supported()) else torch.float16
+    # native bf16 needs Ampere+ (L4/A100/H100); is_bf16_supported() alone also says True for emulated bf16 on a T4
+    amp_dtype = torch.bfloat16 if (device == "cuda" and torch.cuda.get_device_capability()[0] >= 8) else torch.float16
     scaler = torch.cuda.amp.GradScaler(enabled=(device == "cuda" and amp_dtype == torch.float16))
 
     train = np.memmap(args.data, dtype=np.uint16, mode="r")
